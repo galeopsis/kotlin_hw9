@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
                     Manifest.permission.CALL_PHONE
                 ), PERMISSIONS_REQUEST_READ_CONTACTS
             )
-            //callback onRequestPermissionsResult
         } else {
             binding.recyclerView.layoutManager =
                 LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
