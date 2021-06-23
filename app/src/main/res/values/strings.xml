@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ContentProviderTest</string>
+    <string name="content_provider">content_provider</string>
+    <string name="menu_title_history">history</string>
+    <string name="_1234567890">1234567890</string>
+    <string name="applicant_name">name</string>
+    <string name="text_text">text text</string>
+</resources>
