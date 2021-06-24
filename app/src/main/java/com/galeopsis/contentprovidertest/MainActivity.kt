@@ -8,7 +8,9 @@ import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.galeopsis.contentprovidertest.contacts.adapter.MyAdapter
 import com.galeopsis.contentprovidertest.contacts.listener.OnCallListener
 import com.galeopsis.contentprovidertest.contacts.listener.Utility
@@ -18,6 +20,8 @@ import com.galeopsis.contentprovidertest.databinding.ActivityMainBinding
 @RequiresApi(Build.VERSION_CODES.M)
 class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
 
+    lateinit var adapter: MyAdapter
+    private lateinit var contactSearch: RecyclerView
     private lateinit var binding: ActivityMainBinding
 
     private val PERMISSIONS_REQUEST_READ_CONTACTS = 100
@@ -30,10 +34,28 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
         Utility.doMessage(this, t.number)
     }
 
+    private val displayList = ArrayList<Contact>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        contactSearch = findViewById(R.id.recyclerView)
+        contactSearch.layoutManager = LinearLayoutManager(contactSearch.context)
+        contactSearch.setHasFixedSize(true)
+
+        binding.searcher.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+
+        })
 
         loadContacts()
     }
@@ -73,7 +95,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
     }
 
     private fun getContacts(): ArrayList<Contact> {
-        val contacts = ArrayList<Contact>()
+
         val cursor = contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
             null,
@@ -111,7 +133,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
                                             )
                                         )
                                     }
-                                    contacts.add(Contact(name, phoneNumValue))
+                                    displayList.add(Contact(name, phoneNumValue))
                                 }
                             }
                         }
@@ -123,7 +145,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
             }
         }
         cursor?.close()
-        return contacts
+        return displayList
     }
 
     private fun showToast(msg: String) {
