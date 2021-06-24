@@ -8,4 +8,7 @@
     <string name="search">search</string>
     <string name="todo">todo</string>
     <string name="united_states">United States 🇺🇸</string>
+    <string name="my_contact">My contact</string>
+    <string name="number">1234567890</string>
+    <string name="name_of_contact">Name of contact</string>
 </resources>
