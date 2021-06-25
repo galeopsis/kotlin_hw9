@@ -3,6 +3,12 @@
     <string name="content_provider">content_provider</string>
     <string name="menu_title_history">history</string>
     <string name="_1234567890">1234567890</string>
-    <string name="applicant_name">name</string>
-    <string name="text_text">text text</string>
+    <string name="applicant_name">Имя</string>
+    <string name="test_text">test text</string>
+    <string name="search">search</string>
+    <string name="todo">todo</string>
+    <string name="united_states">United States 🇺🇸</string>
+    <string name="my_contact">My contact</string>
+    <string name="number">1234567890</string>
+    <string name="name_of_contact">Name of contact</string>
 </resources>

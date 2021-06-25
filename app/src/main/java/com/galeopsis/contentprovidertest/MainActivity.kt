@@ -2,43 +2,74 @@ package com.galeopsis.contentprovidertest
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.galeopsis.contentprovidertest.contacts.adapter.MyAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.galeopsis.contentprovidertest.contacts.listener.OnCallListener
 import com.galeopsis.contentprovidertest.contacts.listener.Utility
-import com.galeopsis.contentprovidertest.contacts.model.Contact
+import com.galeopsis.contentprovidertest.contacts.model.Contacts
 import com.galeopsis.contentprovidertest.databinding.ActivityMainBinding
 
-@RequiresApi(Build.VERSION_CODES.M)
-class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
+class MainActivity : AppCompatActivity(), OnCallListener<Contacts> {
 
     private lateinit var binding: ActivityMainBinding
-
+    private val contactsList = ArrayList<Contacts>()
     private val PERMISSIONS_REQUEST_READ_CONTACTS = 100
+    lateinit var recyclerView: RecyclerView
+    lateinit var adapter: MyAdapter
 
-    override fun onCall(t: Contact) {
+    override fun onCall(t: Contacts) {
         Utility.makeCall(this, t.number)
     }
 
-    override fun onMessage(t: Contact) {
+    override fun onMessage(t: Contacts) {
         Utility.doMessage(this, t.number)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        val view = binding.root
+        setContentView(view)
+
+        val searchIcon = binding.contactSearch.findViewById<ImageView>(R.id.search_mag_icon)
+        searchIcon.setColorFilter(Color.WHITE)
+
+        val cancelIcon = binding.contactSearch.findViewById<ImageView>(R.id.search_close_btn)
+        cancelIcon.setColorFilter(Color.WHITE)
+
+        val textView = binding.contactSearch.findViewById<TextView>(R.id.search_src_text)
+        textView.setTextColor(Color.WHITE)
+
+        adapter = MyAdapter(this, getContacts())
+        recyclerView = findViewById(R.id.contactItem)
+        recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
+        recyclerView.setHasFixedSize(true)
+
+        binding.contactSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+        })
 
         loadContacts()
     }
 
     private fun loadContacts() {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED
             || checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -49,11 +80,12 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
                 ), PERMISSIONS_REQUEST_READ_CONTACTS
             )
         } else {
-            binding.recyclerView.layoutManager =
+            binding.contactItem.layoutManager =
                 LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-            val adapter = MyAdapter(getContacts())
-            binding.recyclerView.adapter = adapter
+            val adapter = MyAdapter(this, getContacts())
+            binding.contactItem.adapter = adapter
             adapter.setListener(this)
+
         }
     }
 
@@ -66,14 +98,15 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadContacts()
+
             } else {
                 showToast("Вы должны дать разрешение на доступ контактам.")
             }
         }
     }
 
-    private fun getContacts(): ArrayList<Contact> {
-        val contacts = ArrayList<Contact>()
+    private fun getContacts(): ArrayList<Contacts> {
+
         val cursor = contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
             null,
@@ -111,7 +144,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
                                             )
                                         )
                                     }
-                                    contacts.add(Contact(name, phoneNumValue))
+                                    contactsList.add(Contacts(name, phoneNumValue))
                                 }
                             }
                         }
@@ -123,10 +156,13 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
             }
         }
         cursor?.close()
-        return contacts
+        return contactsList
     }
 
     private fun showToast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }
+
+
+
