@@ -15,21 +15,22 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.galeopsis.contentprovidertest.contacts.listener.OnCallListener
 import com.galeopsis.contentprovidertest.contacts.listener.Utility
-import com.galeopsis.contentprovidertest.contacts.model.Contact
+import com.galeopsis.contentprovidertest.contacts.model.Contacts
 import com.galeopsis.contentprovidertest.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
+class MainActivity : AppCompatActivity(), OnCallListener<Contacts> {
 
     private lateinit var binding: ActivityMainBinding
-    private val contacts = ArrayList<Contact>()
+    private val contactsList = ArrayList<Contacts>()
     private val PERMISSIONS_REQUEST_READ_CONTACTS = 100
-    lateinit var contact: RecyclerView
+    lateinit var recyclerView: RecyclerView
+    lateinit var adapter: MyAdapter
 
-    override fun onCall(t: Contact) {
+    override fun onCall(t: Contacts) {
         Utility.makeCall(this, t.number)
     }
 
-    override fun onMessage(t: Contact) {
+    override fun onMessage(t: Contacts) {
         Utility.doMessage(this, t.number)
     }
 
@@ -48,17 +49,18 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
         val textView = binding.contactSearch.findViewById<TextView>(R.id.search_src_text)
         textView.setTextColor(Color.WHITE)
 
-        contact = findViewById(R.id.contactItem)
-        contact.layoutManager = LinearLayoutManager(contact.context)
-        contact.setHasFixedSize(true)
+        adapter = MyAdapter(this, getContacts())
+        recyclerView = findViewById(R.id.contactItem)
+        recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
+        recyclerView.setHasFixedSize(true)
+
         binding.contactSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
-                MyAdapter(getContacts(), this@MainActivity).filter.filter(newText)
+                adapter.filter.filter(newText)
                 return false
             }
         })
@@ -67,6 +69,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
     }
 
     private fun loadContacts() {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED
             || checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -79,9 +82,10 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
         } else {
             binding.contactItem.layoutManager =
                 LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-            val adapter = MyAdapter(getContacts(), this)
+            val adapter = MyAdapter(this, getContacts())
             binding.contactItem.adapter = adapter
             adapter.setListener(this)
+
         }
     }
 
@@ -94,13 +98,14 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadContacts()
+
             } else {
                 showToast("Вы должны дать разрешение на доступ контактам.")
             }
         }
     }
 
-    private fun getContacts(): ArrayList<Contact> {
+    private fun getContacts(): ArrayList<Contacts> {
 
         val cursor = contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
@@ -139,7 +144,7 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
                                             )
                                         )
                                     }
-                                    contacts.add(Contact(name, phoneNumValue))
+                                    contactsList.add(Contacts(name, phoneNumValue))
                                 }
                             }
                         }
@@ -151,10 +156,13 @@ class MainActivity : AppCompatActivity(), OnCallListener<Contact> {
             }
         }
         cursor?.close()
-        return contacts
+        return contactsList
     }
 
     private fun showToast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }
+
+
+

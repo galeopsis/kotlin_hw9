@@ -1,3 +1,3 @@
 package com.galeopsis.contentprovidertest.contacts.model
 
-data class Contact(val name: String, val number: String)
+class Contacts(val name: String, val number: String)
